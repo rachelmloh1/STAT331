@@ -1,0 +1,163 @@
+---
+title: "Stat Final Part Two"
+author: "Rachel Loh"
+date: "3/17/2020"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r library, include = FALSE}
+library(tidyverse)
+library(dbplyr)
+library(lubridate)
+library(stringr)
+library(modelr)
+library(infer)
+library(boot)
+```
+
+
+```{r import, include = FALSE}
+oscars <- read_csv("Oscars-demographics-DFE.csv")
+```
+
+Warm-ups (10 points each)
+
+1. Which is the only movie to have won all 5 of the awards in this dataset?
+
+The only movie to have won all 5 of the awards in this dataset is Million Dollar Baby.
+```{r warning = FALSE, message = FALSE}
+oscars %>%
+  select(movie, award) %>%
+  count(movie) %>%
+  arrange(desc(n))
+```
+
+2. Of all actresses who have won the Best Actress award, what are the three most common first names?
+
+The three most common names are Hilary, Katharine, and Elizabeth (tied with Helen and Jane).
+```{r warning = FALSE, message = FALSE}
+oscars %>%
+  select(award, person) %>%
+  filter(award%in% "Best Actress") %>%
+  separate(person, c("First", " Last")) %>%
+  group_by(First) %>%
+  count(First) %>%
+  arrange(desc(n))
+```
+
+
+
+3. What US State, or non-US country, has produced the most Oscar winners (for the awards in this dataset)?
+
+The top country is England and the top State is California.
+```{r warning = FALSE, message = FALSE}
+oscars %>%
+  select(birthplace) %>%
+  mutate(location = word(birthplace, -1)) %>%
+  group_by(location) %>%
+  count(location) %>%
+  arrange(desc(n))
+```
+
+Age and Gender (60 points)
+
+The information in this dataset includes two awards given only to women (Best Actress, Best Supporting Actress) and two awards given only to men (Best Actor, Best Supporting Actor).
+
+Create a linear model that explores how the typical age of acting award winners has changed over time, and how that effect is different for the two genders of awards.
+
+```{r warning = FALSE, message = FALSE}
+fix_year <- function(year_birth) {
+  year_birth <- as.numeric(year_birth)
+  ifelse(year_birth < 1000, year_birth + 1900, year_birth + 0)
+}
+
+oscars %>%
+  select(date_of_birth, year_of_award, award) %>%
+  separate(date_of_birth, c("Day", "Month", "year_birth")) %>%
+  mutate(year_birth = fix_year(year_birth),
+         age = year_of_award - as.numeric(year_birth),
+         gender = case_when(award == "Best Actress" ~ "Female",
+            award == "Best Supporting Actress" ~ "Female",
+            award == "Best Actor" ~ "Male",
+            award == "Best Supporting Actor" ~ "Male")) %>%
+  filter(award%in% c("Best Actress", "Best Supporting Actress", "Best Actor", "Best Supporting Actor")) %>%
+  ggplot(aes(x = year_of_award, y = age, color = gender)) + 
+  geom_point() + 
+  stat_smooth(method = "lm") +  
+  ggtitle("Typical Age Of Acting Award Winners Over Time") + xlab("Year of Award") + ylab("Age")
+```
+
+Bootstrapping (60 points)
+
+Use a bootstrap approach to answer the following question: What is an approximate 95% confidence interval for percent of “Big 5 Award” award winners who are not white?
+
+In addition to the confidence interval, make a plot that illustrates your findings.
+
+The 95% confidence interval for percent of “Big 5 Award” award winners who are not white is displayed below: 
+
+```{r warning = FALSE, message = FALSE}
+booting <- oscars %>%
+  select(race_ethnicity) %>%
+  mutate(race_ethnicity = case_when(race_ethnicity == "White" ~ "White", race_ethnicity != "White" ~ "Non-White"))
+
+white_or_not <- booting %>%
+  bootstrap(100)
+
+my_prop <- function(x,i){
+sum(x[i] == "Non-White") / length(x)
+}
+
+white_or_not_boots <- white_or_not %>%
+  mutate(boot_prop = map_dbl(strap, ~my_prop(data.frame(.x)$race_ethnicity)))
+
+white_or_not_boots %>%
+  pull(boot_prop) %>%
+  quantile(c(0.025, 0.975))
+
+ggplot(white_or_not_boots, aes(x = boot_prop)) + 
+  geom_histogram(aes(y = ..density..),
+                 fill = "white",
+                 color = "black",
+                 bins = 25) + 
+  geom_density(fill = "cornflowerblue", alpha = 0.5) +  
+  ggtitle("Boot Proportion of the “Big 5 Award” in regards to Ethinicity") + xlab("Boot Proportion") + ylab("Density")
+```
+
+
+Extra Credit (10 points)
+
+Make me the most interesting, beautiful, insightful plot that you possibly can with this data. I will award extra credit to standout visualizations that tell a compelling story in a clear way.
+
+```{r warning = FALSE, message = FALSE}
+oscars_graph <- oscars %>%
+  separate(date_of_birth, c("Day", "Month", "year_birth")) %>%
+  mutate(year_birth = fix_year(year_birth),
+         age = year_of_award - as.numeric(year_birth),
+         gender = case_when(award == "Best Actress" ~ "Female",
+            award == "Best Supporting Actress" ~ "Female",
+            award == "Best Actor" ~ "Male",
+            award == "Best Supporting Actor" ~ "Male"), 
+         race_ethnicity = case_when(race_ethnicity == "White" ~ "White", race_ethnicity != "White" ~ "Non-White")) %>%
+  count(age, gender) %>%
+  mutate(age_chunk  = case_when(age >= 10 & age <= 19 ~ "10-19", 
+                           age >= 20 & age <= 29 ~ "20-29", 
+                           age >= 30 & age <= 39 ~ "30-39", 
+                           age >= 40 & age <= 49 ~ "40-49", 
+                           age >= 50 & age <= 59 ~ "50-59", 
+                           age >= 60 & age <= 69 ~ "60-69", 
+                           age >= 70 & age <= 79 ~ "70-71", 
+                           age >= 80 & age <= 89 ~ "80-81", 
+                           age >= 90 & age <= 99 ~ "90-91"))
+
+oscars_graph %>%
+  ggplot() + geom_col(data = oscars_graph, aes(x = age_chunk, y = n, fill = gender), position = "dodge") + ggtitle("Count Male or Female Winners by Ages") + xlab("Age") + ylab("Total") + scale_fill_discrete("Gender")
+```
+
+
+
+
+

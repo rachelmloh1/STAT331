@@ -1,0 +1,151 @@
+---
+title: "Lab 4"
+author: "Rachel Loh"
+date: "2-14-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(stringr)
+songs <- read.table("https://www.dropbox.com/s/jrwjthqo9b5o07g/billboard_songs.txt?dl=1", header = TRUE, stringsAsFactors = FALSE)
+```
+
+```{r}
+songs <- songs %>%
+  mutate(year = as.numeric(str_sub(chart.date, start = 1, end = 4)),
+         month = as.numeric(str_sub(chart.date, start = 5, end = 6)),
+         day = as.numeric(str_sub(chart.date, start = 7, end = 8)), 
+         date_time = make_datetime(year = year, month = month, day = day,
+                                   hour = 0L, min = 0L, sec = 0))
+```
+
+
+What 10 songs spent the longest on the charts? Give only the title, artist, and weeks.
+
+The songs in the dataset below spent the longest time on the charts.
+
+```{r}
+songs %>%
+  arrange(desc(weeks.on.chart))%>%
+  top_n(10, weeks.on.chart) %>%
+  select(title, artist, weeks.on.chart)
+
+```
+What date did the oldest song(s) in this dataset leave the charts? Give only the date.
+
+July 27th, 1940
+```{r}
+songs %>%
+    arrange(date_time) %>%
+    slice(1L) %>%
+    mutate(weekchart = weeks(as.numeric(weeks.on.chart)),
+           how_long = date_time + weekchart) %>%
+    select(how_long)
+```
+What songs could have been played at your 16th birthday party? That is, which songs that eventually peaked at #1 entered the charts within a couple months (before or after) your 16th birthday? Give only the song title, artist, and date of chart entry.
+
+Fancy, All of Me, Happy, and Dark Horse could have been played.
+```{r}
+songs %>%
+  select(title, artist, date_time, overall.peak) %>%
+  filter(overall.peak == 1) %>%
+  filter(ymd(20140821) <= date_time & date_time <= ymd(20150121))
+```
+
+
+What is the most common word, at least 4 letters long, used in the title of any song? Give only the word itself, and its count.
+
+Heart is the most common word used.
+```{r}
+string_title <- toString(songs$title)
+
+new_title <- string_title %>% 
+  str_remove_all(pattern = "([:punct:])") %>%
+  str_extract_all("\\w+")%>%
+  unlist()
+
+vector_titles <- new_title[nchar(new_title) > 4]
+
+data.frame(vector_titles) %>%
+  group_by(vector_titles) %>%
+  summarise(total_count = n()) %>%
+  top_n(1, total_count)
+
+
+
+```
+
+Which five artists were the most successful in terms of:
+
+Number of songs that were #1 hits
+Elvis Presley, Madonna, Mariah Carey,
+Michael Jackson, The Beatles
+
+Total weeks any of their songs spent on the chart.
+Elvis Presley:1284
+Madonna:870
+Mariah Carey:576
+Michael Jackson:573
+The Beatles:628
+
+```{r}
+songs %>%
+  select(artist, overall.peak) %>%
+  filter(overall.peak == 1) %>%
+  group_by(artist) %>%
+  summarise(num_one = n()) %>%
+  top_n(5, num_one)
+
+
+songs %>%
+  select(title, artist, weeks.on.chart) %>%
+  group_by(artist) %>%
+  summarise(total_weeks = sum(weeks.on.chart)) %>%
+  filter(artist == "ELVIS PRESLEY" | artist == "MADONNA" | artist == "MARIAH CAREY" | artist == "MICHAEL JACKSON" |artist == "THE BEATLES") %>%
+  top_n(5, total_weeks)
+  
+  
+
+```
+
+Let’s take a look at artists who work together on songs.
+
+Which artist has featured on the most Billboard charting songs?
+
+Lil Wayne
+
+Which artist has collaborated on the most Billboard charting songs?
+
+His Orchestra
+
+```{r}
+artist_feat <- str_subset(songs$artist, pattern = "(featuring)+")
+artist_feat <- sub(".*featuring", "", artist_feat)
+artist_feat <- str_split(artist_feat, pattern = "&")
+artist_feat <- unlist(artist_feat)
+artist_feat <- str_trim(artist_feat, side = "both")
+artist_feat <- as.data.frame(artist_feat)
+artist_feat %>%
+  group_by(artist_feat) %>%
+  summarise(count = n()) %>%
+  top_n(1, count)
+  
+artist_collab <- str_subset(songs$artist, pattern = "[,&]+")
+artist_collab <- str_split(artist_collab, pattern = "&")
+artist_collab <- unlist(artist_collab)
+artist_collab <- str_remove_all(artist_collab, pattern = "(feat)(uring)?.*")
+artist_collab <- str_trim(artist_collab, side = "both")
+artist_collab <- data_frame(artist_collab)
+artist_collab %>%
+  group_by(artist_collab) %>%
+  summarise(count = n()) %>%
+  top_n(1, count)
+```
+
+
+
+
+

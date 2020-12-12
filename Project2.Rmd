@@ -1,0 +1,64 @@
+---
+title: "Project2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+install.packages("charlatan")
+library("charlatan")
+```
+
+Create a vector of Random Colors' names with the function ch_color_name().  
+ch_colorname() allows you randomly generate colors.  As well, you can choose a language by using the arguement locale = "" and the number of colors by n = "".  The default locale is English and the default n is 1.  Note that the locale argument can take arguments such as: "en_US"(English), "fr_FR"(French), "hr_HR"(Croatian), "uk_UA"(Ukranian), and "zh_TW"(Chinese).  For example, ch_color_name(locale = "en_US", n = 3) will have an output of a vector with three elements of random colors' names in the language, English in this case, you selected.  See below:
+```{r}
+ch_color_name(n = 3, locale = "uk_UA")
+```
+
+Note that there are other color name functions that also generate colors.  The function ch_safe_color_name has the same defaults and outputs as ch_color_name.  It's default is ch_safe_color_name(n = 1, locale = en_US).  However, this function will give outputs of color names that are more generic and commom, ie "safe".  For example, ch_color_name may give colors with more descriptions, such as Antique White.  Meanwhile the ch_safe_color_name will simply give the output white.  
+
+```{r}
+ch_safe_color_name(n = 5, locale = NULL)
+```
+
+
+Another color function is ch_hex_color.  It's default is ch_hex_color(n = 1).  This will give a random hex/code for color and n will be the number of hexes in the vector.  Notice that there is no locale because a hex does not have a language associated with it.  The function ch_safe_hex_color() has the same defaults and outputs as ch_hex_color().  However, similarly to the difference between the ch_color_name() and ch_safe_color_name(), the ch_hex_color() will give more detailed and complex colors while the ch_safe_hex_color() function will output more common and simple colors.  
+```{r}
+ch_hex_color(n = 3)
+
+ch_safe_hex_color(n = 3)
+```
+
+
+
+Additionally there is another color function, ch_rgb_color().  It's defaults are ch_rgb_color(n = 1).  It will output a vector of the rgb numbers.  Note that if you enter a n > 1, the output of rgb numbers will be a list of vectors.  For example: 
+```{r}
+ch_rgb_color(n = 1)
+ch_rgb_color(n = 5)
+```
+
+The last color function is ch_rgb_css_color().  It's default is ch_rgb_css_color(n = 1).  This gives an output of a vector with elemnts of a string that displays the numbers for rgb.  For example: 
+
+```{r}
+ch_rgb_css_color(n = 4)
+```
+
+
+
+
+Create a vector of random names with the function ch_name(). 
+ch_name() allows you to randomly generate names, first and last.  The default is ch_name(n = 1, locale = NULL, messy = FALSE) with n = number of names in the vector, locale = language, and messy = how the data is organized (messy or not). Note that these names may include suffixes, prefixes, and hyphens.  For example ch_name(n = 3, locale = "fr_FR", messy = FALSE) will have the output of a vector of three names, first and last, in the selected language, in this case French.  See below:
+
+```{r}
+ch_name(n = 3, locale = "fr_FR", messy = FALSE)
+```
+Create a vector of random phone numbers with the function ch_phone_number().
+The ch_phone_number() allows you to generate a vector of random phone numbers.  The default is ch_phone_number(n = 1, locale = en_US) with n = number of phone numbers in the vector, and locale = the language.  Note that these phone numbers may include extensions.  For example ch_phone_number(n = 15, locale = en_US)
+```{r}
+ch_phone_number(n = 10, locale = "en_US")
+```
+

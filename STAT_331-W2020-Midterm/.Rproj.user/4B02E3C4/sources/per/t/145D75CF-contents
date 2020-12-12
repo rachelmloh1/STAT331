@@ -1,0 +1,129 @@
+---
+title: 'Midterm: Part Three'
+author: "Rachel Loh"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+library(tidyverse) 
+library(lubridate)
+```
+
+```{r}
+#### Read in the dataset ####
+nba_cleaned <- read_csv("./NBA_cleaned.csv")
+```
+
+# Guards and Forwards
+
+## New variable
+```{r}
+#### Create your new variable here ####
+nba_cleaner1 <- nba_cleaned %>%
+  mutate(Position = case_when(Position == "PG" ~ "Guard", 
+                               Position == "SG" ~ "Guard", 
+                               Position == "G" ~ "Guard",
+                   TRUE ~ "Foward"))
+  
+```
+
+## Plot
+
+```{r}
+#### Recreate the plot here ####
+nba_cleaner1 %>%
+         mutate(new_date = as.Date(Date, 'Apr 14, 1985',format='%b %d, %Y'),
+         winning_year = as.numeric(str_sub(new_date, start = 1, end = 4))) %>%
+  group_by(winning_year, Position) %>%
+  summarise(Count = n()) %>%
+  ggplot() + 
+  geom_col(aes(x = winning_year, y = Count, fill = Position), position = "dodge") +
+  ggtitle("Number of POW wins for Guards and Forwards") + xlab("Year") + ylab("Count") +
+  scale_fill_discrete("Position")
+
+nba_cleaner1 %>% ggplot() + 
+  geom_boxplot(mapping = aes(x = Position, y = Height))
+
+nba_cleaner1 %>% ggplot() + 
+  geom_boxplot(mapping = aes(x = Position, y = Weight))
+
+```
+
+# Superstars
+The output of the data shows the which two teams had the most POW that were not superstars.  Those being Phoenix Suns and Atlanta Hawks/ Golden State Warriors/ Los Angeles Clippers.
+```{r}
+#### Your code here ####
+nba_cleaned %>%
+  select(Player, Team) %>%
+  group_by(Player, Team) %>%
+  summarise(player_count = n()) %>%
+  arrange(desc(player_count)) %>%
+  filter(player_count < 10) %>%
+  group_by(Team) %>%
+  summarise(sum_team = sum(player_count)) %>%
+  arrange(desc(sum_team)) %>%
+  top_n(2, sum_team)
+```
+
+
+# Season Halves
+
+## Find halfway point
+
+```{r}
+#### Your code here ####
+new_nba <- nba_cleaned %>%
+  filter(Season == "2017-2018") %>%
+  mutate(new_date = as.Date(Date, 'Apr 14, 1985',format='%b %d, %Y'),
+         year = as.numeric(str_sub(new_date, start = 1, end = 4)),
+         month = as.numeric(str_sub(new_date, start = 6, end = 7)),
+         day = as.numeric(str_sub(new_date, start = 9, end = 10)), 
+         date_time = make_datetime(year = year, month = month, day = day,
+                                   hour = 0L, min = 0L, sec = 0)) %>%
+  mutate(halfway_point = max(new_date) - min(new_date))
+
+#168/2=84 so half way is
+
+new_nba %>%
+  mutate(half_way = new_date + 84)
+
+
+
+```
+
+
+## More wins in second half
+
+```{r}
+#### Your code here ####
+new_nba1 <- new_nba %>%
+  mutate(first = new_date < 2018-07-02,
+         second = new_date > 2018-07-02) 
+
+new_nba1 %>%
+  group_by(Team, second) %>%
+  summarise(team_count = n()) %>%
+  arrange(desc(team_count))
+new_nba1 %>%
+  group_by(Team, first) %>%
+  summarise(team_count = n()) %>%
+  arrange(desc(team_count))
+
+# I would then join these two tables and subtract the counts to see which team had more wins in the 
+#second season than the first
+```
+
+# Extra Credit
+
+
+```{r}
+#### Your code here ####
+```
+
+
+
+
+
+
+

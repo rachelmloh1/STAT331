@@ -1,0 +1,72 @@
+---
+title: "PA9"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(1957)
+```
+
+```{r}
+# What is the probability that a Chi-Square distribution with 35 degrees of freedom gives a value of 25 or less?
+pchisq(25, df = 35)
+
+#What is the probability that 10 coin tosses give 6 or more heads?
+1-pbinom(5, size = 10, prob = .5)
+
+#If I randomly sample a number between 16 and 22, I can be 80% sure my number will be less than what?
+qunif(.8, min = 16, max =22)
+
+#What is the critical value for a 1-sided t-test at the 0.05 significance level, with a sample size of 50?
+#t distrubution 
+qt((1-.95), df = 49)
+
+#What is the probability of getting exactly 12 heads in 20 coin tosses?
+dbinom(12, size = 20, prob = .5)
+
+
+```
+#warmup
+```{r}
+#What is the 95th percentile for trumpet weight?
+qunif(.95,  min = 1.5, max = 3.5)
+
+#What is the 10th percentile for trombone weight?
+qnorm(.10, mean = 4.6, sd =  0.8)
+
+#About what percent of trombones do you expect to be more than 5 pounds?
+pnorm(5, mean = 4.6, sd =  0.8)
+
+#About what percent of reed instruments do you expect to be more than 5 pounds?
+pexp(5, rate = 1/4, lower.tail = TRUE, log.p = FALSE)
+
+#Simulate 100 random trombone weights. How many of them were below 4 pounds?
+counter <- rnorm(100, mean = 4.6, sd = 0.8) < 4
+sum(counter, na.rm = TRUE)
+
+```
+
+function that samples the correct number of weights of trombones, cornets (trumpets), and reed instruments, and then returns the total weight.
+
+```{r}
+set.seed(1957)
+total_weight <- function(){
+  trombones <- rnorm(76, mean = 4.6, sd = 0.8)
+  trumpets <- runif(110, min = 1.5, max = 3.5)
+  reeds <- rexp(1035, rate = 1/4)
+  sum_instrument <- sum(trombones, trumpets, reeds)
+  return(sum_instrument)
+}
+
+thousand <- replicate(1000, total_weight()) < 4532
+sum(thousand, na.rm = TRUE)
+
+```
+
+
+
+
+
+
+

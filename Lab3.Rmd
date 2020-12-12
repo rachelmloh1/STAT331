@@ -1,0 +1,39 @@
+---
+title: "Lab3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source("myscript.R")
+xmas$Gift.Item <- pluralize_gift(xmas$Gift.Item)
+
+xmas <- xmas %>%
+  mutate(
+    Full.Phrase = make_phrase(Day, Gift.Item, Verb, Adjective, Location)
+  )
+
+sing_line(xmas, 11, Full.Phrase)
+
+range <- c(1:12)
+phrase <- c()
+
+for(x in range){
+  phrase <- c(phrase, map_chr(x, ~sing_line(xmas, x, Full.Phrase)))
+}
+
+phrase
+```
+
+
+```{r}
+source("myscript.R")
+xmas <- read.csv("https://www.dropbox.com/s/e584pryn8evm1gz/xmas.csv?dl=1")
+
+sing_song(xmas)
+```
+
+

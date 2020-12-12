@@ -1,0 +1,53 @@
+---
+title: "Flex 2"
+author: "Rachel Loh"
+date: "1-26-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r library, message = FALSE}
+library(tidyverse)
+```
+
+```{r avocado}
+avocado <- read_csv("./avocado.csv")
+```
+
+A joke in the media is that Millenials can’t afford houses, because they spend all their money buying avocado toast. Let’s use this dataset to address that claim.
+
+Find or make a dataset with house prices for the California regions. Join this dataset with your avocado data. Use your new large dataset to make an argument about the relationship between house prices and avocado prices/sales. Support your argument with a plot.
+
+
+
+
+
+I joined the original avocado data set with a data set that I made from gathering information about avgerage home prices in California.  From here I looked at the average prices of avocados and homes in Los Angeles, San Diego, Sacramento, and San Fransisco.  From the graphs and data, we can see that in general there is a negative slope or trend that as average home price goes down so does average avocado price.  However there is one outlier which is San Fransisco.  We see that it has the most expensive homes and the most expensive avocado prices.  
+
+```{r}
+California <- avocado %>%
+  filter(region %in% c("LosAngeles", "SanDiego", "Sacramento", "SanFrancisco")) %>%
+  select(AveragePrice, region) %>%
+  group_by(region)%>%
+  summarise(meanprice = mean(AveragePrice))
+
+
+regions <- c("LosAngeles", "SanDiego", "Sacramento", "SanFrancisco")
+AvgHomePrice <- c(717583, 647187, 346970, 1387263)
+CalforniaHome <-  data_frame(regions, AvgHomePrice)
+colnames(CalforniaHome)[1] <- "region"
+
+Compare <- full_join(California, CalforniaHome, by = "region")
+colnames(Compare)[2] <- "AvgAvoPrice"
+Compare %>%
+  ggplot() + geom_col(mapping = aes(x = region, y = AvgAvoPrice))
+Compare %>%
+  ggplot() + geom_col(mapping = aes(x = region, y = AvgHomePrice))
+Compare %>%
+ ggplot() + geom_point(mapping = aes(x = AvgHomePrice, y = AvgAvoPrice)) + ggtitle("Comparing Avg Avocado Price and Avg Home Price")
+  
+  
+```

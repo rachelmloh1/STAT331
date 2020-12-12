@@ -1,0 +1,98 @@
+---
+title: "PA6"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#1
+lower_case <- c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z")
+
+upper_case <- c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
+
+punctuation <- c(".", ",", "!", "?", "'", '"', "(", ")", " ", "-", ";", ":")
+
+#2
+my_symbols <- c(lower_case, upper_case, punctuation)
+
+#3
+my_symbols <- data.frame(my_symbols)
+names(my_symbols) = "Symbol"
+
+#4
+len <- nrow(my_symbols)
+
+#5
+my_symbols$Num <- 1:len
+
+
+```
+
+
+#PART2
+```{r}
+#5
+top_secret <- read.csv("https://www.dropbox.com/s/k72h1zewk4gtqep/PA_Secret_Code?dl=1", header = FALSE)$V1
+top_secret <- (exp(((top_secret + 14) * 18) - 257))^2
+secret_matrix <- matrix(top_secret,ncol = 5)
+
+
+#6
+evens <- seq(2,382,2)
+
+#7
+secret_matrix[ , 1] <- secret_matrix[ , 1] - evens
+
+#8 
+secret_matrix[18:24, 3] <- secret_matrix[18:24, 3] - 100
+
+
+#9
+secret_matrix[ , 4:5] <- secret_matrix[ , 4:5] * 2
+
+#10
+secret_vec <- as.vector(secret_matrix)
+
+#11
+secret_vec[c(38:465)] <- sqrt(secret_vec[c(38:465)])
+
+#12
+secret_vec <- round(secret_vec)
+
+#13
+replace(secret_vec, secret_vec == 39, 20)
+
+#check
+checkpoint <- secret_vec %% 2 == 0
+checkpoint
+sum(checkpoint == TRUE)
+
+```
+
+
+
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

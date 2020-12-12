@@ -1,0 +1,49 @@
+---
+title: "FinalPreWork"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dbplyr)
+library(lubridate)
+library(stringr)
+```
+
+```{r}
+oscars <- read_csv("./Oscars.csv")
+```
+
+```{r}
+oscars1 <- oscars %>%
+  mutate(`_last_judgment_at` = as.Date(`_last_judgment_at`, "2/10/15 3:45",format = "%m/%d/%y %H:%M"),
+         date_of_birth = as.Date(date_of_birth, "30-Sep-1895", format = "%d-%b-%Y"),
+         birthplace = na_if(birthplace, "Na"),
+         religion = na_if(religion, "Na"), 
+         sexual_orientation = na_if(sexual_orientation, "Na"),
+         date_of_birth_gold = as.Date(date_of_birth_gold, "11-Dec-67", format = "%d-%b-%y"))
+```
+
+
+```{r}
+fix_year <- function(year_birth) {
+  year_birth1 <- as.numeric(year_birth)
+  if(year_birth1 < 1000){
+    (year_birth1 + 1900)
+  }
+  else{
+    (year_birth1+ 0)
+  }
+} 
+
+
+oscars %>%
+  select(date_of_birth, year_of_award) %>%
+  separate(date_of_birth, c("Day", "Month", "year_birth")) %>%
+  mutate(year_birth = fix_year(year_birth),
+         age = year_of_award - as.numeric(year_birth)) %>%
+  arrange(year_birth) %>%
+  kable("html")
+```
+

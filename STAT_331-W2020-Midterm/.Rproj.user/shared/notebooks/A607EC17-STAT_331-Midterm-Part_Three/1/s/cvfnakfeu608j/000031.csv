@@ -1,0 +1,9 @@
+"0","new_nba1 %>%
+  group_by(Team, second) %>%
+  summarise(team_count = n()) %>%
+  arrange(desc(team_count))
+"
+"0","new_nba1 %>%"
+"0","  group_by(Team, first) %>%"
+"0","  summarise(team_count = n()) %>%"
+"0","  arrange(desc(team_count))"

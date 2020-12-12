@@ -1,0 +1,247 @@
+---
+title: "Lab 1 Hip Hop"
+author: "Rachel Loh"
+date: "1-15-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r library, message = FALSE}
+library(tidyverse)
+```
+
+
+## R Markdown
+
+1. The dataset is presenting how often certain words are used in various genres of music for artists of different ethnicities.  As well, it shows how popular the words are and other charateristics that can be analyzed as to which words to use in which songs.
+
+```{r hiphop}
+hiphop <- read_csv("https://www.dropbox.com/s/5d8fwxrj3jtua1z/hiphop.csv?dl=1")
+```
+
+
+
+2. Cleaning the data
+```{r}
+clean_hiphop <- hiphop %>%
+  mutate(sex = as.factor(sex), ethnic = as.factor(ethnic))
+```
+
+3. How many AAVE words were studied in this dataset?
+
+There are 64 AAVE words
+```{r}
+  unique(hiphop$word)
+```
+
+4. Make a new variable that recategorizes ethnic into only two groups, “white” and “non-white”, to simplify your data.
+
+```{r}
+clean_hiphop <- hiphop %>%
+  mutate(ethnic = case_when(ethnic == "white" ~ "white",
+                   TRUE ~ "non-white"))
+clean_hiphop
+```
+
+5. What are the demographics of the people in this study? Investigate the variables sex, age, and ethnic and summarize your findings in 1-3 complete sentences. 
+
+From this data we can see that there are 168 people.  More specifically, 33 are white and 135 are non-white.  As well, the ages range from 16-48 with the mean being 20 and the median being 19.
+
+```{r}
+cleaner_hiphop <- clean_hiphop %>%  
+  distinct(subj, .keep_all = TRUE) 
+  count(cleaner_hiphop, vars = ethnic)
+  summary(cleaner_hiphop$sex) 
+  summary(cleaner_hiphop$age)
+```
+
+6. Make at least two plots to display the demographic information of the subjects in this study.
+```{r}
+clean_hiphop %>%
+  mutate(ethnic = case_when(ethnic == "white" ~ "white",
+                   TRUE ~ "non-white")) %>% 
+  ggplot()+geom_bar(mapping = aes(x = ethnic)) + 
+  labs(title = "Count of the Different Ethnic Groups")
+
+clean_hiphop %>%
+  ggplot()+geom_bar(mapping = aes(x = age)) + 
+  labs(title = "Count of the Different Ages")
+  
+  
+```
+
+
+
+1. For each demographic group listed below, determine which word(s) in this study was the most and least familiar on average.
+
+People below the age of 20
+  Most familiar: "off the hook", "feel me", "hella"
+  Least familiar: "catch the vapors", "domino", "The Nation"
+Non-white women
+  Most familiar: "feel me", "boo", "off the hook"
+  Least familiar: "rollie", "plex", "dukey rope"
+White men above the age of 30
+  Most familiar: "feel me", "off the hook", "hella"
+  Least familiar: "saditty", "rollie", "humming"
+
+```{r}
+below20 <- hiphop %>%
+  select(age, word, familiarity) %>%
+  filter(age <= 20) %>%
+  group_by(word) %>%
+  summarise_at(vars(familiarity), funs(mean,median)) %>%
+  arrange(desc(mean))
+below20
+  
+nonwhitewomen <- clean_hiphop %>%
+  select(ethnic, sex , word, familiarity) %>%
+  filter(ethnic == "non-white", sex == "Female") %>%
+  group_by(word) %>%
+  summarise_at(vars(familiarity), funs(mean, median)) %>%
+  arrange(desc(mean))
+nonwhitewomen
+
+whitemen <- clean_hiphop %>%
+  select(ethnic, sex , word, familiarity) %>%
+  filter(ethnic == "white", sex == "Male") %>%
+  group_by(word) %>%
+  summarise_at(vars(familiarity), funs(mean, median)) %>%
+  arrange(desc(mean))
+whitemen
+  
+  
+```
+2. For each demographic comparison below, determine which music genre most differentiates the groups. That is, which genre had much higher average (mean or median) score in one group than the other.
+
+Male versus Female: Rock 
+
+White versus Non-White: Intl 
+
+Age below 21 versus age 21+: Alternative
+
+
+```{r}
+malevsfemale <- cleaner_hiphop %>%
+  group_by(sex) %>%
+  summarise_at(vars(intl, vocal, classical, folk, rock, country, pop, alternative, hiphop, unclassifiable),funs(mean)) 
+malevsfemale
+
+#intl 0.41895
+#vocal -0.6882856
+#classical -0.1890397
+#folk 0.0095525
+#rock -1.1272
+#country 0.3941679
+#pop 0.201106
+#alternative 0.0056812
+#hiphop 0.09452
+#unclassifiable 0.02061337 
+
+whitevsnonwhite <- cleaner_hiphop %>%
+  group_by(ethnic) %>%
+  summarise_at(vars(intl, vocal, classical, folk, rock, country, pop, alternative, hiphop, unclassifiable),funs(mean)) 
+whitevsnonwhite
+
+#intl 1.5925926
+#vocal -0.525925933
+#classical 0.0484848
+#folk -0.2700339
+#rock -1.50976
+#country -0.4923573
+#pop 0.043097
+#alternative -1.187206
+#hiphop 0.729966
+#unclassifiable  0.04646
+
+belowandabove21 <- cleaner_hiphop %>%
+  group_by(age >= 21) %>%
+  summarise_at(vars(intl, vocal, classical, folk, rock, country, pop, alternative, hiphop, unclassifiable),funs(mean)) 
+belowandabove21
+
+#intl 0.3375768
+#vocal 0.1856892
+#classical -0.0913081
+#folk -0.0162423
+#rock -0.062335
+#country -0.0122915
+#pop 0.040387
+#alternative -0.380597
+#hiphop 0.303775
+#unclassifiable  -0.04345817
+  
+  
+```
+
+1. Aubrey hopes that his songs will be percieved as authentically hiphop. He hopes his lyrics will be recognizeable to those who describe themselves as hiphop fans, but less recognizeable to those who do not consider themselves fans. Suggest some words or phrases that Aubrey should try to use, and some words he should avoid.
+
+Words that Aubrey can use that are percieved as authenticaly hiphop that are reconizable to hiphop fans and not non hiphop fans are "finna", "make it rain", "5-0", "ashy", "what is it?".  Words that Aubrey should avoid are "feel me", "off the hook", "hella", and "boo", and "what it do".
+
+```{r}
+clean_hiphop %>%
+  select(hiphop, word, familiarity) %>%
+  filter(hiphop >= 7) %>%
+  group_by(word) %>%
+  summarise(fam_mean = mean(familiarity)) %>%
+  arrange(desc(fam_mean))
+
+
+clean_hiphop %>%
+  select(hiphop, word, familiarity) %>%
+  arrange(hiphop) %>%
+  filter(hiphop <= 3) %>%
+  group_by(word) %>%
+  summarise(fam_mean = mean(familiarity)) %>%
+  arrange(desc(fam_mean))
+  
+```
+
+2. Although Aubrey wants to be authentic, he also hopes to sell records, of course. Two titles have been suggested for his first album: “Hotline Boo” or “Hella Bling”. Based on the dataset, which will appeal more to the higher population areas? Make at least one plot to support your answer.
+Hint: Consider first converting the population variable(s) to categories, such as “large”, “medium”, and “small”. You may also want to use the “fam1” variable instead of “familiarity”
+
+From this we can see that the title "Hella Bling" will have a higher appeal in larger population areas.
+
+```{r}
+city_pop <- clean_hiphop %>% 
+  select(word, city, county, fam1) %>%
+  mutate(cat_city = case_when(
+    city >= 0 & city < 300000 ~ "small",  
+    city >= 300000 & city < 500000 ~ "medium",
+    city >500000 ~ "large")) %>%
+  filter(word == "hotline" | word == "bling" | word == "boo" | word == "hella", fam1 != 0) %>%
+  arrange(desc(city))
+  
+city_pop %>%
+  filter(cat_city == "large")%>%
+  ggplot() +
+  geom_bar(mapping = aes(x = word)) +
+  labs(title = "Count of Word in Large Population Cities")
+
+```
+
+3. Aubrey’s true life dream is to collaborate with his fellow Canadian musician Justin Bieber. Luckily, he knows that Bieber himself was one of the subjects in this study! You know that Bieber is a white male, aged 17-23 at the time of the study, from a relatively small town (10,000-60,000 people) in Ontario. Determine which subject is secretly Bieber, and justify your answer.
+
+From this data it is concluded that Justin Bieber is subject p17.  This was found by first filtering the data to the characteristics that fit Justin Biever (age range, gender, sex, city population).  From here, I arranged the remaining data in order of the bieber category.  Thus, Justin Bieber would be the subject that knows the most Bieber songs in this filtered set of data.  This is how I concluded that he was p17.
+
+```{r}
+Bieberdata <- cleaner_hiphop %>%
+  select(age, sex, city, bieber, subj) %>% 
+  filter(age <= 23, age >= 17, sex == "Male", city <= 60000, city >= 10000) %>%
+  arrange(desc(bieber))
+Bieberdata
+
+```
+4. Use the dataset to suggest a track listing (11 song titles) for Aubrey’s next album with the Biebs. Explain your thought process and corresponding code.
+
+The 11 title suggestions are CP time, dap, dukey rope, plex, road dog, saditty, talking jazz, boughie, cop my steezy, good hair, and straight cash.  The code I used for this is filtered to true hiphop fans which I have classified at scoring 7 or greater and then words that these hiphop fans are familiar with.  I used the binary fam1 to distinguish if they are familiar or not.  Then I grouped the words by the mean bieber category.  I did this to see the average bieber score for each word.  Then I arranged the data in order of how high the bieber category scored.  I based this off of the fact that Aubrey wants to work with Justin Bieber for his next album to select the title.  
+```{r}
+clean_hiphop %>%
+  select(hiphop, word, fam1, bieber, pop) %>%
+  filter(hiphop >= 7, fam1 != 0)%>%
+  group_by(word) %>%
+  summarise(meanbieber = mean(bieber)) %>%
+  arrange(desc(meanbieber))
+```
+

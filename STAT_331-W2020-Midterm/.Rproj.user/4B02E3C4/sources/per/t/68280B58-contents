@@ -1,0 +1,73 @@
+---
+title: 'Midterm: Part One'
+author: "Rachel Loh"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE)
+library(tidyverse)
+library(stringr)
+library(lubridate)
+```
+
+```{r}
+#### Read in the dataset ####
+nba <- read_csv("./NBA_player_of_the_week.csv")
+```
+
+# Data Cleaning:  Height
+
+```{r}
+#### Write your fix_height function here ####
+
+fix_height <- function(Height){
+  new_height <- round(as.numeric(str_remove_all(Height, pattern = "cm"))*0.393701, digits = 0)
+  new_height0 <- as.numeric(str_remove_all(Height, pattern = "-"))
+  new_height1 <- (as.numeric(str_sub(new_height0, start = 1, end = 1))*12)
+  new_height2 <- (as.numeric(str_sub(new_height0, start = 2, end = 3)))
+  new_height0 <- round(new_height1 + new_height2, digits = 0)
+  height_inch <- coalesce(new_height, new_height0)
+  return(height_inch) 
+}
+```
+
+```{r}
+#### Update the Height variable here ####
+nba <- nba %>%
+  mutate(Height = fix_height(Height))
+```
+
+# Data Cleaning:  Weight
+
+```{r}
+#### Write your data cleaning code here ####
+fix_weight <- function(Weight){
+  if (Weight == "[:digit:](kg)+") {
+new_weight = round(as.numeric(str_remove_all(Weight, pattern = "kg"))*2.20462, digits = 0)
+  } else{
+  new_weight = Weight
+}
+  return(new_weight) 
+}
+
+nba %>% 
+  mutate(Weight = fix_weight(Weight))
+```
+
+
+
+
+# Check
+
+```{r}
+#### DO NOT EDIT THIS CHUNK ####
+fix_height("5-9")
+fix_height("221cm")
+summary(nba$Height)
+summary(nba$Weight)
+```
+
+
+
+

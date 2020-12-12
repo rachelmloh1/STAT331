@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1582160943767.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "92916278",
+    "id" : "145D75CF",
+    "lastKnownWriteTime" : 1582163795,
+    "last_content_update" : 1582163795437,
+    "path" : "~/Desktop/STAT_331-W2020-Midterm/STAT_331-Midterm-Part_Three.Rmd",
+    "project_path" : "STAT_331-Midterm-Part_Three.Rmd",
+    "properties" : {
+        "cursorPosition" : "113,29",
+        "last_setup_crc32" : "5642723927360b58",
+        "scrollLine" : "95"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

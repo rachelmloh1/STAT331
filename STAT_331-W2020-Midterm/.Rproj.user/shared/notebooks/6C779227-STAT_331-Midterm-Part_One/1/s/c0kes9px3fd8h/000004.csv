@@ -1,0 +1,5 @@
+"0","#### Update the Height variable here ####"
+"0","nba <- nba %>%"
+"0","  mutate(Height = fix_height(Height))"
+"2","NAs introduced by coercion"
+"2","NAs introduced by coercion"

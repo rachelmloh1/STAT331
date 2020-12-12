@@ -1,0 +1,77 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+hamlet <- read_lines("./hamlet_speech.txt")
+message <- read.csv("https://www.dropbox.com/s/lgpn3vmksk3ssdo/scrambled_message.txt?dl=1", stringsAsFactors = FALSE)$Word
+```
+
+```{r}
+message
+sum(str_count(message))
+sum(str_count(message, "\\s"))
+sum(str_count(message, pattern = "[:graph:]+"))
+message %>%
+  str_c(collapse = " ") %>%
+  str_extract_all(pattern = "\\.|\\?|\\!")
+
+message_vec <- message %>%
+  str_c(collapse = " ") %>%
+  str_split(pattern = "\\W")%>%
+  unlist()
+
+message_vec %>%
+  str_length()%>%
+  which.max() -> max_idx
+toupper(message_vec[max_idx])
+
+str_extract_all(message, "([Mm][a-z]*)+") %>% unlist()
+str_extract_all(message, "([a-z]*)+z") %>% unlist()
+```
+
+```{r}
+#Remove any spaces before or after each word.
+message <- trimws(message)
+
+#No word should be longer than 20 characters. Drop all extras off the end of each word.
+message <- str_sub(message, 0, 20)
+
+#Any time you see the word “ugh”, with any number of h’s, followed by a punctuation mark, delete this.
+message <- str_remove_all(message, pattern = "(ug[h]*[:punct:])+")
+
+#Replace all instances of exactly 2 a’s with exactly 2 e’s.
+message <- str_replace_all(message, pattern = "aa", replacement = "ee")
+
+#Replace all z’s with t’s.
+message <- str_replace_all(message, pattern = "z", replacement = "t")
+
+#Every word that ends in b, change that to a y. Hint: punctuation!
+message <- str_replace_all(message, pattern = "(b$)[:punct:]*", replacement = "y")
+
+#Every word that starts with k, change that to a v. Hint: capitalization!
+message <- str_replace_all(message, "[Kk]", "v")
+
+#Use str_c to recombine all your words into a message.
+str_c(message, seo = "", collapse = " ")
+```
+
+
+```{r}
+ham_vec <- hamlet %>%
+  str_c(collapse = " ") %>%
+  str_split(pattern = "\\W")%>%
+  unlist()
+
+ham_vec %>%
+  str_length()%>%
+  which.max() -> max_idx
+ham_vec[max_idx]
+
+
+
+```
+

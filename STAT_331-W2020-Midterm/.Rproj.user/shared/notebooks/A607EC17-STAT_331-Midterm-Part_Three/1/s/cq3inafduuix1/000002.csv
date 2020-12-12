@@ -1,0 +1,19 @@
+"0","#### Read in the dataset ####"
+"0","nba_cleaned <- read_csv(""./NBA_cleaned.csv"")"
+"2","Parsed with column specification:
+cols(
+  Age = [32mcol_double()[39m,
+  Date = [31mcol_character()[39m,
+  `Draft Year` = [32mcol_double()[39m,
+  Height = [32mcol_double()[39m,
+  Player = [31mcol_character()[39m,
+  Position = [31mcol_character()[39m,
+  Season = [31mcol_character()[39m,
+  `Season short` = [32mcol_double()[39m,
+  `Seasons in league` = [32mcol_double()[39m,
+  Team = [31mcol_character()[39m,
+  Real_value = [32mcol_double()[39m,
+  Conference = [31mcol_character()[39m,
+  Weight = [32mcol_double()[39m
+)
+"

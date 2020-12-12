@@ -1,0 +1,40 @@
+---
+title: "Stat Final Part One"
+author: "Rachel Loh"
+date: "3/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+make_qq <- function(vec) {
+  vec_1 <- sort(vec, decreasing = TRUE)
+  vec_2 <- sort(rnorm(length(vec_1), mean = mean(vec_1), sd = sd(vec_1)), decreasing = TRUE)
+  the_qq <- plot(vec_1, vec_2, xlab = "Original Observations", ylab = "Normal Samples", main = "QQ Plot") + abline(lm(vec_1 ~ vec_2))
+  return(the_qq)
+}
+
+make_qq(USArrests$UrbanPop)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

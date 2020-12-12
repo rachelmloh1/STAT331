@@ -1,0 +1,172 @@
+---
+title: "Lab5"
+author: "Rachel Loh"
+date: "2-27-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+set.seed(369)
+```
+
+```{r}
+my_samples <- data.frame(
+  values = rnorm(1000, mean = 50, sd = 10)
+)
+
+ggplot(my_samples, aes(x = values)) + 
+  geom_histogram(aes(y = ..density..),
+                 fill = "white",
+                 color = "black") + 
+  geom_density(fill = "cornflowerblue", alpha = 0.5) + 
+  geom_vline(xintercept = mean(my_samples$values), color = "red", lwd = 2)
+
+
+```
+
+What were the mean and standard deviation of the samples?
+```{r}
+sd(my_samples$values)
+mean(my_samples$values)
+```
+
+
+Simulate a sample of size 30 from this population, and find the mean and standard deviation. How do they compare to your answers in (a)?
+
+Both these answers are very close to the answers in part A.
+```{r}
+sampthirty <- rnorm(30, mean = 50, sd = 10)
+sd(sampthirty) 
+mean(sampthirty)
+```
+
+Repeat Question 1, this time for a variable that has an exponential(0.02) distribution.
+
+The mean is close to part A however the SD is far from part A.
+```{r}
+expsamp <- rexp(1000, rate = 0.02)
+sd(expsamp)
+mean(expsamp)
+```
+
+
+Still using the exponential(0.02), simulate 1000 samples of size 30, and calculate the sample mean of each one. Make a density plot of these sample means.
+```{r}
+exp_thirty <- function() {
+  random_thirty <- rexp(30, rate = 0.02)
+  mean_thirty <- mean(random_thirty)
+  return(mean_thirty)
+}
+thousand_samples <- replicate(1000, exp_thirty())
+
+ggplot(as.data.frame(thousand_samples), aes(x = thousand_samples)) + 
+  geom_density(fill = "cornflowerblue", alpha = 0.5)
+
+```
+Comment on your plot from (3). How was the distribution of the sample means different from the distribution of the original variable?
+You can see that the original variable is a normal distrubution and the sample means is also a normal distrubution.
+
+
+Find the standard deviation of your 1000 sample means. How does it compare to the standard deviation of your single sample from 2(b)? Hint: Divide the sd of the single sample by the sd of the sample means. Then square that.
+```{r}
+sd(thousand_samples)
+sd(expsamp)
+(sd(expsamp)/sd(thousand_samples))^2
+  #We can see that the SD of the original sample would be larger thant the SD of the sample that simulates 1000 samples of size 30 and has the mean of each of these.  This is because with a larger amount of samples there is less variance. Thus these two SD vary. 
+
+```
+
+PART TWO
+
+Continue to study the exponential(0.02) distribution
+What is the true median of this distribution?
+```{r}
+median(qexp(0.5, rate = 0.02))
+```
+
+
+Return to your 1000 samples of size 30. Find the median of each sample. Make a plot of the density of all the medians, with a vertical line representing the true median.
+```{r}
+exp_thirty_median <- function() {
+  random_thirty_median <- rexp(30, rate = 0.02)
+  thirty_median <- median(random_thirty_median)
+  return(thirty_median)
+}
+
+thousand_samples_median <- replicate(1000, exp_thirty_median())
+
+ggplot(as.data.frame(thousand_samples_median), aes(x = thousand_samples_median)) + 
+  geom_density(fill = "cornflowerblue", alpha = 0.5) + 
+  geom_vline(xintercept = median(qexp(0.5, rate = 0.02)), color = "red", lwd = 2) +
+  scale_x_continuous(limits=c(0,80))
+```
+
+
+Based on your plot in (c), do you think the CLT applies to the median of an exponential distribution?
+Yes I think that the CLT applies to the median of an exponential distribution because when looking at this density graph, we can see that it is a normal distrubution.
+
+
+MIDHINGE
+Based of off the graph, the Midhinge distribution appears to be normally distributed and thus I think that the CLT applies to it.  
+```{r}
+first <- qexp(0.25, rate = 0.02)
+third <- qexp(0.75, rate = 0.02)
+(first + third) / 2
+
+
+
+exp_thirty_midhinge <- function() {
+  random_thirty_midhinge <- rexp(30, rate = 0.02)
+  first <- quantile(random_thirty_midhinge, c(0.25), type = 1)
+  third <- quantile(random_thirty_midhinge, c(0.75), type = 1)
+ thirty_midhinge  <- (first + third) / 2
+  return(thirty_midhinge)
+}
+
+
+thousand_samples_midhinge <- replicate(1000, exp_thirty_midhinge())
+
+ggplot(as.data.frame(thousand_samples_midhinge), aes(x = thousand_samples_midhinge)) + 
+  geom_density(fill = "cornflowerblue", alpha = 0.5) + 
+  geom_vline(xintercept = (first + third) / 2, color = "red", lwd = 2) +
+  scale_x_continuous(limits=c(0,80))
+```
+
+
+MAXIMUM
+This distribution is skewed to the right thus it does not follow the CLT.
+```{r}
+#The maximum of this sample is infinity because the exponential function can go to infinity.
+
+
+exp_thirty_max <- function() {
+  random_thirty_max <- rexp(30, rate = 0.02)
+  thirty_max  <- max(random_thirty_max)
+  return(thirty_max)
+}
+
+
+thousand_samples_max <- replicate(1000, exp_thirty_max())
+
+ggplot(as.data.frame(thousand_samples_max), aes(x = thousand_samples_max)) + 
+  geom_density(fill = "cornflowerblue", alpha = 0.5)
+```
+
+
+PART THREE
+
+```{r}
+
+sum(thousand_samples > 55) / 1000
+
+#this is not a small p value thus we do not reject the null that the distribution is a 0.02 distribution.  We can conclude that the time of 55 minutes is unlucky.
+
+1 - pnorm(55, 50, 50 / sqrt(30))
+
+#this is not a small p value thus we do not reject the null that the distribution is a 0.02 distribution.  We can conclude that the time of 55 minutes is unlucky.
+```
+
+
+

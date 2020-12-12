@@ -1,0 +1,186 @@
+---
+title: "Lab6"
+author: "Rachel Loh"
+date: "3-4-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(modelr)
+library(infer)
+library(statip)
+set.seed(321)
+```
+
+```{r}
+salary <- read_csv("./Salaries.csv", na = c("Not Provided", "Not provided"))
+```
+
+
+Our variable of interest for this lab is going to be Total Pay. Plot a histogram of Total Pay with an overlaying density. Comment briefly on the shape, center, and spread.
+
+This is a bimodal distribution.  The median is at 71426.61.  The spread goes from 0 to about 600,000 as appears on the visual.
+```{r}
+ggplot(salary, aes(x = TotalPay)) + 
+  geom_histogram(aes(y = ..density..),
+                 fill = "white",
+                 color = "black",
+                 bins = 25) + 
+  geom_density(fill = "cornflowerblue", alpha = 0.5) + 
+  geom_vline(xintercept = median(salary$TotalPay), color = "red", lwd = 2)
+
+ median(salary$TotalPay)
+
+```
+
+
+Suppose we’re interested in making inference about the typical salary (Total Pay) of all San Francisco city employees and this is our representative sample. Is the mean a good statistic to use here to describe the typical value of salary? Why or why not?
+
+The mean is not a good statistic to use because the distribution of salary is skewed.  This means that the mean would also be skewed.  Thus is would be better to use the median.  
+
+
+Recall that a one-sample t-test requires that the sample mean is approximately Normally distributed. Does this assumption seem reasonable for the mean Total Pay? Why or why not?
+
+Yes, because of the central limit theorem and it being a large sample size, it is normally distributed.
+
+
+
+Find a 95% confidence interval for the mean Total Pay using the t distribution.
+
+We are 95% confident that the interval for the mean Total Pay is between (74511.52, 75025.13).
+```{r}
+salary %>%
+  t_test(response = TotalPay, mu = 0.5)
+
+```
+
+
+BOOTSTRAPPING
+
+Use the bootstrap procedure to construct a 95% bootstrap confidence interval for the mean Total Pay. Compare this interval to your t-interval in (3)
+
+From the bootstrap we are 95% confident that the bootstrap mean for Total Pay is between (74575.62, 75002.98).  These are very close to the previous answer using the data (74511.52, 75025.13).
+```{r}
+
+first <- qexp(0.25, rate = 0.02)
+third <- qexp(0.75, rate = 0.02)
+
+midhinge <- function(input) {
+  first <- quantile(input, c(0.25), type = 1)
+  third <- quantile(input, c(0.75), type = 1)
+ midhinge_  <- (first + third) / 2
+  return(midhinge_)
+}
+
+my_boots <- salary %>%
+  select(TotalPay) %>% 
+  bootstrap(100)
+
+my_boots <- my_boots %>%
+  mutate(
+    boot_means = map_dbl(strap, ~mean(data.frame(.x)$TotalPay)),
+    boot_trim_five = map_dbl(strap, ~mean(data.frame(.x)$TotalPay), trim = 0.05),
+    boot_trim_ten = map_dbl(strap, ~mean(data.frame(.x)$TotalPay), trim = 0.1),
+    boot_trim_twenty_five = map_dbl(strap, ~mean(data.frame(.x)$TotalPay), trim = 0.25),
+    boot_median = map_dbl(strap, ~median(data.frame(.x)$TotalPay)),
+    boot_midhinge = map_dbl(strap, ~midhinge(data.frame(.x)$TotalPay))
+  )
+
+
+my_boots %>%
+  pull(boot_means) %>%
+  quantile(c(0.025, 0.975))
+
+```
+
+
+Since the distribution of Total Pay is so skewed, there may be other statistics that are better at describing the typical salary. Write your own function for calculating the following two statistics. (You may have to Google what they mean! Feel free to use relevant code from previous labs.)
+
+The mean function allows for trimming the mean at different percentages. 
+
+Perform the bootstrap procedure and produce histogram + density graphs of the distributions of:
+Midhinge
+
+5% Trimmed Mean
+
+10% Trimmed Mean
+
+25% Trimmed Mean
+
+Median
+
+```{r}
+
+ggplot(my_boots, aes(x = boot_midhinge)) + 
+  geom_histogram(aes(y = ..density..),
+                 fill = "white",
+                 color = "black",
+                 bins = 25) + 
+  geom_density(fill = "cornflowerblue", alpha = 0.5) +  
+  ggtitle("Midhinge") + xlab("Boot Midhinge") + ylab("Density")
+
+
+ggplot(my_boots, aes(x = boot_trim_five)) + 
+  geom_histogram(aes(y = ..density..),
+                 fill = "white",
+                 color = "black",
+                 bins = 25) + 
+  geom_density(fill = "cornflowerblue", alpha = 0.5) +  
+  ggtitle("Trimmed Mean .05") + xlab("Boot Trimmed Mean") + ylab("Density")
+
+ggplot(my_boots, aes(x = boot_trim_ten)) + 
+  geom_histogram(aes(y = ..density..),
+                 fill = "white",
+                 color = "black",
+                 bins = 25) + 
+  geom_density(fill = "cornflowerblue", alpha = 0.5) +  
+  ggtitle("Trimmed Mean .1") + xlab("Boot Trimmed Mean") + ylab("Density")
+
+ggplot(my_boots, aes(x = boot_trim_twenty_five)) + 
+  geom_histogram(aes(y = ..density..),
+                 fill = "white",
+                 color = "black",
+                 bins = 25) + 
+  geom_density(fill = "cornflowerblue", alpha = 0.5) +  
+  ggtitle("Trimmed Mean .25") + xlab("Boot Trimmed Mean") + ylab("Density")
+
+ggplot(my_boots, aes(x = boot_median)) + 
+  geom_histogram(aes(y = ..density..),
+                 fill = "white",
+                 color = "black",
+                 bins = 25) + 
+  geom_density(fill = "cornflowerblue", alpha = 0.5) +  
+  ggtitle("Median") + xlab("Boot Trimmed Median") + ylab("Density")
+```
+
+Compute 95% bootstrap confidence intervals for the statistics listed in (8). For each, compare to your interval to the interval for the mean that you computed first.
+
+When looking at these confidence intervals, one can see that the midhinge and medians vary from the initial interval computed from the mean.  However, we can see that the trimmed means are very close.  This makes sense because the trimmed means are made up of the same data as the mean with the most outlying data trimmed.
+
+```{r}
+my_boots %>%
+  pull(boot_midhinge) %>%
+  quantile(c(0.025, 0.975))
+
+my_boots %>%
+  pull(boot_trim_five) %>%
+  quantile(c(0.025, 0.975))
+
+my_boots %>%
+  pull(boot_trim_ten) %>%
+  quantile(c(0.025, 0.975))
+
+my_boots %>%
+  pull(boot_trim_twenty_five) %>%
+  quantile(c(0.025, 0.975))
+
+my_boots %>%
+  pull(boot_median) %>%
+  quantile(c(0.025, 0.975))
+```
+
+Which of these statistics do you think is the best statistic to describe the typical salary? Why? *(There is no single write answer to this question. Think about what each statistic is measuring, and decide whether that makes sense for this data.)
+
+I think that the median is the best statistic to describe typical salary since this is skewed data.  It allows us to see 50% above and 50% letting us know who is in the middle.  If we were to use the mean, the mean would also be skewed.  The midhinge could potentially be a good statistic for the data however, I think it is easier for readers to understand statistics in regards to median.  

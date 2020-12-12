@@ -1,0 +1,101 @@
+---
+title: "FinalProject"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(dbplyr)
+library(lubridate)
+library(stringr)
+library(modelr)
+library(infer)
+library(boot)
+```
+
+```{r}
+hotels <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-11/hotels.csv')
+```
+
+When looking at our dataset on hotels, we wanted to see how many days people usually book their hotels in advance.  This is analyzing the lead time variable in the dataset.  Looking at the plot of our data, we can see that the data is skewed right.  Thus, we do not have a normal distribution.  Due to the fact that our data is skewed, we want to use the bootstrap method.  
+```{r}
+hotels1 <- hotels %>%
+  mutate(arrival_date_time = paste(arrival_date_day_of_month, arrival_date_month, arrival_date_year),
+         arrival_date_time = as.Date(arrival_date_time, '1 July 2015	',format='%d %b %Y'), 
+         reservation_made_date_time = (arrival_date_time + lead_time)) %>%
+  select(arrival_date_time, reservation_made_date_time, lead_time, adults, children, babies)
+
+ggplot(hotels1, aes(x = lead_time)) + 
+  geom_histogram(aes(y = ..density..), bins = 10, fill = "white", color = "black")+
+  stat_density(fill = "cornflowerblue", alpha = 0.5) + 
+  ggtitle("Density of Lead Time") + xlab("Lead Time") + ylab("Density")
+```
+
+
+When using the bootstrap method, we are able to create a normal distribution from the originally skewed distrubution.  Thus now we are able to find a confidence interval, which is presented below.  We are 95% confident that the lead time for people booking their hotels will fall between 103.4503 and 104.5873 days.  
+```{r}
+my_boots <- hotels1 %>%
+  select(lead_time) %>% 
+  bootstrap(1000)
+
+my_boots <- my_boots %>%
+  mutate(
+    boot_means = map_dbl(strap, ~mean(data.frame(.x)$lead_time)))
+
+my_boots %>%
+  pull(boot_means) %>%
+  quantile(c(0.025, 0.975))
+
+ggplot(my_boots, aes(x = boot_means)) + 
+  geom_histogram(aes(y = ..density..),
+                 fill = "white",
+                 color = "black",
+                 bins = 25) + 
+  geom_density(fill = "cornflowerblue", alpha = 0.5) + 
+  ggtitle("Distribution of Boot Mean") + xlab("Boot Mean") + ylab("Density")
+
+```
+
+
+
+By cleaning the data, we were able to look at frequncy of bookings per month over the years of data.  We would have expected to see a peak in hotel reservations during summer or holidays, because people are more likely to travel during these months.  However, we can see that there is no clear trending line.  
+```{r}
+hotel_date_total <- table(cut(hotels1$arrival_date_time, 'month'))
+
+hotel_date_total <- data.frame(Date = format(as.Date(names(hotel_date_total)), '%m/%Y'),
+           Frequency=as.vector(hotel_date_total))
+
+ggplot(data = hotel_date_total, aes(x = Date, y = as.numeric(Frequency))) +
+  geom_point() + 
+  geom_line() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +  
+  ggtitle("Hotels Booked Per Month Over The Years") + xlab("Date") + ylab("Frequency")
+```
+
+
+From cleaning our data, we were able to analyze average lead time and number of children.  The goal was to see if there is any correlation between these two variables.  From the graph, we can see a trend that as a family has more children, they are less likely to book further in advance.
+```{r}
+na.omit(hotels1) %>%
+  mutate(children_total = children + babies) %>%
+  group_by(children_total) %>%
+  summarise(lead_time_mean = mean(lead_time)) %>%
+  mutate(children_total = children_total) %>%
+  ggplot(aes(x = children_total, y = lead_time_mean)) + 
+  geom_point() +
+  stat_smooth(method = "lm") +
+  labs(x = "Total Children", 
+       y = "Average Lead Time",
+       title = "Hotel Reservation Lead Time") +
+  theme_minimal()
+```
+
+
+
+
+
+
+
